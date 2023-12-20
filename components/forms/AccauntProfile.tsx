@@ -16,6 +16,8 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "../ui/textarea";
+import { isBase64Image } from "@/lib/utils";
+import { useUploadThing } from "@/lib/uploadthing";
 
 interface AccountProfileProps {
   user: {
@@ -30,21 +32,18 @@ interface AccountProfileProps {
 }
 
 const AccountProfile: React.FC<AccountProfileProps> = ({ user, btnTitle }) => {
+  const [files, setFiles] = React.useState<File[] | []>([]);
+  const { startUpload } = useUploadThing("media");
+
   const form = useForm({
     resolver: zodResolver(userValidation),
     defaultValues: {
-      profile_photo: "",
-      name: "",
-      username: "",
-      bio: "",
+      profile_photo: user?.image || "",
+      name: user?.name || "",
+      username: user?.username || "",
+      bio: user?.bio || "",
     },
   });
-
-  const onSubmit = (values: z.infer<typeof userValidation>) => {
-    // Do something with the form values.
-    // ✅ This will be type-safe and validated.
-    console.log(values);
-  };
 
   const handleImageChange = (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -52,13 +51,40 @@ const AccountProfile: React.FC<AccountProfileProps> = ({ user, btnTitle }) => {
   ) => {
     e.preventDefault();
 
-    // const file = e.target.files?.[0];
-    // if (!file) return;
-    // const reader = new FileReader();
-    // reader.readAsDataURL(file);
-    // reader.onloadend = () => {
-    //   onChange(reader.result as string);
-    // };
+    const fileReader = new FileReader();
+
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+
+      setFiles(Array.from(e.target.files));
+
+      if (!file.type.includes("image")) {
+        return;
+      }
+
+      fileReader.onload = async (ev) => {
+        const imageDataUrl = ev.target?.result?.toString() ?? "";
+        onChange(imageDataUrl);
+      };
+
+      fileReader.readAsDataURL(file);
+    }
+  };
+
+  const onSubmit = async (values: z.infer<typeof userValidation>) => {
+    const blob = values.profile_photo;
+
+    const hasImageChanged = isBase64Image(blob);
+
+    if (hasImageChanged) {
+      const imageRes = await startUpload(files);
+
+      if (imageRes && imageRes[0]) {
+        values.profile_photo = imageRes[0].url;
+      }
+    }
+
+    // TODO: Update user profile
   };
 
   return (
@@ -80,7 +106,7 @@ const AccountProfile: React.FC<AccountProfileProps> = ({ user, btnTitle }) => {
                     width={96}
                     height={96}
                     priority
-                    className="rounded-full object-contain"
+                    className="rounded-full object-cover w-full h-full"
                   />
                 ) : (
                   <Image
@@ -108,11 +134,11 @@ const AccountProfile: React.FC<AccountProfileProps> = ({ user, btnTitle }) => {
           control={form.control}
           name="name"
           render={({ field }) => (
-            <FormItem className="flex items-center gap-3 w-full">
+            <FormItem className="flex flex-col w-full gap-3">
               <FormLabel className="text-base-semibold text-light-2">
                 Name
               </FormLabel>
-              <FormControl className="flex-1 text-base-semibold text-gray-200">
+              <FormControl>
                 <Input
                   type="text"
                   className="account-form_input no-focus"
@@ -126,11 +152,11 @@ const AccountProfile: React.FC<AccountProfileProps> = ({ user, btnTitle }) => {
           control={form.control}
           name="username"
           render={({ field }) => (
-            <FormItem className="flex items-center gap-3 w-full">
+            <FormItem className="flex flex-col w-full gap-3">
               <FormLabel className="text-base-semibold text-light-2">
                 Username
               </FormLabel>
-              <FormControl className="flex-1 text-base-semibold text-gray-200">
+              <FormControl>
                 <Input
                   type="text"
                   className="account-form_input no-focus"
@@ -144,11 +170,11 @@ const AccountProfile: React.FC<AccountProfileProps> = ({ user, btnTitle }) => {
           control={form.control}
           name="bio"
           render={({ field }) => (
-            <FormItem className="flex items-center gap-3 w-full">
+            <FormItem className="flex flex-col w-full gap-3">
               <FormLabel className="text-base-semibold text-light-2">
                 Bio
               </FormLabel>
-              <FormControl className="flex-1 text-base-semibold text-gray-200">
+              <FormControl>
                 <Textarea
                   rows={10}
                   className="account-form_input no-focus"
@@ -158,7 +184,9 @@ const AccountProfile: React.FC<AccountProfileProps> = ({ user, btnTitle }) => {
             </FormItem>
           )}
         />
-        <Button type="submit">Submit</Button>
+        <Button type="submit" className="bg-primary-500">
+          Submit
+        </Button>
       </form>
     </Form>
   );

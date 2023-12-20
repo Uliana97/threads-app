@@ -2,14 +2,16 @@ import AccauntProfile from "@/components/forms/AccauntProfile";
 import { currentUser } from "@clerk/nextjs";
 
 async function Page() {
+  // Data from Clerk (Auth)
   const user = await currentUser();
 
+  // Data from DB
   const userInfo = {
-    _id: "60f6b8b9e1f9b40004f1b3a6",
-    username: "test",
-    name: "test",
-    bio: "test",
-    image: "https://i.pravatar.cc/150?u=60f6b8b9e1f9b40004f1b3a6",
+    _id: "",
+    username: "",
+    name: "",
+    bio: "",
+    image: "",
   };
 
   const userData = {
