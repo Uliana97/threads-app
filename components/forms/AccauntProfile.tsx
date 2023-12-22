@@ -1,7 +1,9 @@
 "use client";
+
 import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 import * as z from "zod";
 
@@ -18,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "../ui/textarea";
 import { isBase64Image } from "@/lib/utils";
 import { useUploadThing } from "@/lib/uploadthing";
+import { updateUser } from "@/lib/actions/user.actions";
 
 interface AccountProfileProps {
   user: {
@@ -34,6 +37,8 @@ interface AccountProfileProps {
 const AccountProfile: React.FC<AccountProfileProps> = ({ user, btnTitle }) => {
   const [files, setFiles] = React.useState<File[] | []>([]);
   const { startUpload } = useUploadThing("media");
+  const pathname = usePathname();
+  const router = useRouter();
 
   const form = useForm({
     resolver: zodResolver(userValidation),
@@ -84,7 +89,21 @@ const AccountProfile: React.FC<AccountProfileProps> = ({ user, btnTitle }) => {
       }
     }
 
-    // TODO: Update user profile
+    await updateUser({
+      userid: user.id,
+      name: values.name,
+      username: values.username,
+      bio: values.bio,
+      image: values.profile_photo,
+      path: pathname,
+    });
+
+    if (pathname === "/profile/edit") {
+      router.back();
+    } else {
+      // from onboarding
+      router.push("/");
+    }
   };
 
   return (
