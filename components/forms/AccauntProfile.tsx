@@ -15,6 +15,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
+  FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "../ui/textarea";
@@ -146,6 +147,7 @@ const AccountProfile: React.FC<AccountProfileProps> = ({ user, btnTitle }) => {
                   onChange={(e) => handleImageChange(e, field.onChange)}
                 />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -164,6 +166,7 @@ const AccountProfile: React.FC<AccountProfileProps> = ({ user, btnTitle }) => {
                   {...field}
                 />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -182,6 +185,7 @@ const AccountProfile: React.FC<AccountProfileProps> = ({ user, btnTitle }) => {
                   {...field}
                 />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -200,6 +204,7 @@ const AccountProfile: React.FC<AccountProfileProps> = ({ user, btnTitle }) => {
                   {...field}
                 />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />

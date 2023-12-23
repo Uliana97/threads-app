@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+
 import User from "../models/user.model";
 import { connectToDB } from "../mongoose";
 
@@ -44,5 +45,29 @@ export const updateUser = async ({
     }
   } catch (err: any) {
     throw new Error(`Failed to create/update user: ${err.message}`);
+  }
+};
+
+// TODO: add return type
+export const fetchUser = async (userId: string) => {
+  try {
+    connectToDB();
+
+    // TODO: add type
+    const user = await User.findOne({ id: userId });
+    // .populate({
+    //   path: "communities",
+    //   model: "Community",
+    // });
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    return user;
+
+    // TODO: add type
+  } catch (err: any) {
+    throw new Error(`Failed to fetch user: ${err.message}`);
   }
 };
