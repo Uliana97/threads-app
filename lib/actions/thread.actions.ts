@@ -13,12 +13,12 @@ interface Params {
   path: string;
 }
 
-export async function createThread({
+export const createThread = async ({
   text,
   author,
   communityId,
   path,
-}: Params) {
+}: Params) => {
   try {
     connectToDB();
 
@@ -38,12 +38,12 @@ export async function createThread({
   } catch (error: any) {
     throw new Error(`Failed to create thread: ${error.message}`);
   }
-}
+};
 
-export async function fetchPosts(
+export const fetchPosts = async (
   pageNumber: number = 1,
   pageSize: number = 20
-) {
+) => {
   try {
     connectToDB();
     // calculate posts to skip
@@ -74,5 +74,88 @@ export async function fetchPosts(
     return { posts, isNextPage };
   } catch (error: any) {
     throw new Error(`Failed to fetch posts: ${error.message}`);
+  }
+};
+
+export const fetchThreadById = async (threadId: string) => {
+  connectToDB();
+
+  try {
+    const thread = await Thread.findById(threadId)
+      .populate({
+        path: "author",
+        model: User,
+        select: "_id id name image",
+      }) // Populate the author field with _id and username
+
+      // .populate({
+      //   path: "community",
+      //   model: Community,
+      //   select: "_id id name image",
+      // }) // Populate the community field with _id and name
+      .populate({
+        path: "children", // Populate the children field = comments
+        populate: [
+          {
+            path: "author", // Populate the author of the comment
+            model: User,
+            select: "_id id name parentId image", // Select only _id and username fields of the author
+          },
+          {
+            path: "children", // Populate the subcomment of te comment
+            model: Thread,
+            populate: {
+              path: "author", // Populate the author field within subcomment
+              model: User,
+              select: "_id id name parentId image", // Select only _id and username fields of the author
+            },
+          },
+        ],
+      })
+      .exec();
+
+    return thread;
+  } catch (err) {
+    console.error("Error while fetching thread:", err);
+    throw new Error("Unable to fetch thread");
+  }
+};
+
+export async function addCommentToThread(
+  threadId: string,
+  commentText: string,
+  userId: string,
+  path: string
+) {
+  connectToDB();
+
+  try {
+    // Find the parent (thread) of the comment
+    const originalThread = await Thread.findById(threadId);
+
+    if (!originalThread) {
+      throw new Error("Thread not found");
+    }
+
+    // Create the new comment thread
+    const commentThread = new Thread({
+      text: commentText,
+      author: userId,
+      parentId: threadId, // Set the parentId to the original thread's ID
+    });
+
+    // Save the comment thread to the DB
+    const savedCommentThread = await commentThread.save();
+
+    // Update the original thread to include the new comment
+    originalThread.children.push(savedCommentThread._id);
+
+    // Save the updated original thread to the database
+    await originalThread.save();
+
+    revalidatePath(path);
+  } catch (err) {
+    console.error("Error while adding comment:", err);
+    throw new Error("Unable to add comment");
   }
 }

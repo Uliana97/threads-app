@@ -30,14 +30,14 @@ const PostThread = ({ userId }: Props) => {
     resolver: zodResolver(threadValidation),
     defaultValues: {
       thread: "",
-      accountId: userId,
+      accountId: JSON.parse(userId),
     },
   });
 
   const onSubmit = async (values: z.infer<typeof threadValidation>) => {
     await createThread({
       text: values.thread, // From react-hook-form
-      author: userId,
+      author: JSON.parse(userId),
       communityId: null,
       path: pathname,
     });
