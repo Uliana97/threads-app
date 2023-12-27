@@ -15,7 +15,7 @@ interface ThreadCardProps {
     image: string;
     id: string;
   };
-  community: {
+  community?: {
     id: string;
     name: string;
     image: string;

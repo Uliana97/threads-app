@@ -91,7 +91,7 @@ const AccountProfile: React.FC<AccountProfileProps> = ({ user, btnTitle }) => {
     }
 
     await updateUser({
-      userid: user.id,
+      userId: user.id,
       name: values.name,
       username: values.username,
       bio: values.bio,

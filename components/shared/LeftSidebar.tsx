@@ -2,7 +2,7 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { SignOutButton, SignedIn } from "@clerk/nextjs";
+import { SignOutButton, SignedIn, useAuth } from "@clerk/nextjs";
 import { usePathname, useRouter } from "next/navigation";
 
 import { sidebarLinks } from "@/constants/index";
@@ -14,6 +14,7 @@ type LeftSidebarProps = {
 const LeftSidebar: React.FC<LeftSidebarProps> = (props) => {
   const router = useRouter();
   const pathname = usePathname();
+  const { userId } = useAuth();
 
   return (
     <section className="custom-scrollbar leftsidebar">
@@ -22,6 +23,8 @@ const LeftSidebar: React.FC<LeftSidebarProps> = (props) => {
           const isActive =
             (pathname.includes(link.route) && link.route.length > 1) ||
             pathname === link.route;
+
+          if (link.route === "/profile") link.route = `${link.route}/${userId}`;
 
           return (
             <Link
