@@ -151,3 +151,34 @@ export const fetchUsers = async ({
     throw error;
   }
 };
+
+export const getActivity = async (userId: string) => {
+  try {
+    connectToDB();
+
+    // Find all threads created by the user
+    const userThreads = await Thread.find({ author: userId });
+
+    // Collect all the child thread ids (replies) from the 'children' field of each user thread
+    const childThreadIds = userThreads.reduce((acc, userThread) => {
+      return acc.concat(userThread.children);
+    }, []);
+
+    // Find and return the child threads (replies) excluding the ones created by the same user
+    const replies = await Thread.find({
+      _id: { $in: childThreadIds },
+      author: { $ne: userId },
+      // The populate method is used to replace the specified field (author in this case) with the actual document(s) from the referenced model (User).
+      // This is helpful because, by default, MongoDB stores only the _id of the referenced document, but we need to display the author's name and image.
+    }).populate({
+      path: "author",
+      model: User,
+      select: "name image _id",
+    });
+
+    return replies;
+  } catch (error) {
+    console.error("Error fetching activity: ", error);
+    throw error;
+  }
+};

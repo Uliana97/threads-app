@@ -27,7 +27,7 @@ const UserCard = ({ id, name, username, imgUrl, personType }: Props) => {
             alt="User Avatar"
             width={48}
             height={48}
-            className="rounded-full object-cover"
+            className="rounded-full object-cover  h-12 w-12"
           />
         </div>
 
