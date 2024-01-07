@@ -4,6 +4,8 @@ import { currentUser } from "@clerk/nextjs";
 import UserCard from "@/components/cards/UserCard";
 
 import { fetchUser, fetchUsers } from "@/lib/actions/user.actions";
+import Pagination from "@/components/shared/Pagination";
+import Searchbar from "@/components/shared/Searchbar";
 
 const Page = async ({
   searchParams,
@@ -18,7 +20,7 @@ const Page = async ({
 
   const result = await fetchUsers({
     userId: user.id,
-    searchString: "",
+    searchString: searchParams.q,
     pageNumber: searchParams?.page ? +searchParams.page : 1,
     pageSize: 25,
   });
@@ -27,7 +29,7 @@ const Page = async ({
     <section>
       <h1 className="head-text mb-10">Search</h1>
 
-      {/* <Searchbar  /> */}
+      <Searchbar route="search" />
 
       <div className="mt-14 flex flex-col gap-9">
         {result.users.length === 0 ? (
@@ -48,7 +50,11 @@ const Page = async ({
         )}
       </div>
 
-      {/* <Pagination  /> */}
+      <Pagination
+        path="search"
+        pageNumber={searchParams?.page ? +searchParams.page : 1}
+        isNext={result.isNext}
+      />
     </section>
   );
 };
