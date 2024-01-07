@@ -1,13 +1,28 @@
 "use server";
 
+import { FilterQuery, SortOrder } from "mongoose";
 import { revalidatePath } from "next/cache";
 
-import User from "../models/user.model";
-import { connectToDB } from "../mongoose";
+import Community from "../models/community.model";
 import Thread from "../models/thread.model";
-import { FilterQuery, SortOrder } from "mongoose";
+import User from "../models/user.model";
 
-interface UserUpdateI {
+import { connectToDB } from "../mongoose";
+
+export const fetchUser = async (userId: string) => {
+  try {
+    connectToDB();
+
+    return await User.findOne({ id: userId }).populate({
+      path: "communities",
+      model: Community,
+    });
+  } catch (error: any) {
+    throw new Error(`Failed to fetch user: ${error.message}`);
+  }
+};
+
+interface Params {
   userId: string;
   username: string;
   name: string;
@@ -18,12 +33,12 @@ interface UserUpdateI {
 
 export const updateUser = async ({
   userId,
-  username,
-  name,
-  image,
   bio,
+  name,
   path,
-}: UserUpdateI): Promise<void> => {
+  username,
+  image,
+}: Params): Promise<void> => {
   try {
     connectToDB();
 
@@ -44,35 +59,25 @@ export const updateUser = async ({
       // allows to clear cached data on-demand
       revalidatePath(path);
     }
-  } catch (err: any) {
-    throw new Error(`Failed to create/update user: ${err.message}`);
-  }
-};
-
-// TODO: add return type
-export const fetchUser = async (userId: string) => {
-  try {
-    connectToDB();
-
-    return await User.findOne({ id: userId });
-    // .populate({
-    //   path: "communities",
-    //   model: Community,
-    // });
   } catch (error: any) {
-    throw new Error(`Failed to fetch user: ${error.message}`);
+    throw new Error(`Failed to create/update user: ${error.message}`);
   }
 };
 
-export const fetchUserPosts = async (accountId: string) => {
+export const fetchUserPosts = async (userId: string) => {
   try {
     connectToDB();
 
     // Find all threads authored by the user with the given userId
-    const threads = await User.findOne({ id: accountId }).populate({
+    const threads = await User.findOne({ id: userId }).populate({
       path: "threads",
       model: Thread,
       populate: [
+        {
+          path: "community",
+          model: Community,
+          select: "name id image _id",
+        },
         {
           path: "children",
           model: Thread,
@@ -85,8 +90,9 @@ export const fetchUserPosts = async (accountId: string) => {
       ],
     });
     return threads;
-  } catch (err: any) {
-    throw new Error(`Failed to fetch user posts: ${err.message}`);
+  } catch (error) {
+    console.error("Error fetching user threads:", error);
+    throw error;
   }
 };
 

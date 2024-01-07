@@ -1,11 +1,10 @@
-import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 
 import { formatDateString } from "@/lib/utils";
 
 // TODO: add global types COmmunity, User, Comment
-interface ThreadCardProps {
+interface Props {
   id: string;
   currentUserId: string;
   parentId: string | null;
@@ -15,7 +14,7 @@ interface ThreadCardProps {
     image: string;
     id: string;
   };
-  community?: {
+  community: {
     id: string;
     name: string;
     image: string;
@@ -29,7 +28,7 @@ interface ThreadCardProps {
   isComment?: boolean;
 }
 
-const ThreadCard: React.FC<ThreadCardProps> = ({
+const ThreadCard: React.FC<Props> = ({
   id,
   currentUserId,
   parentId,

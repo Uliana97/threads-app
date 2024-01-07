@@ -22,11 +22,6 @@ const nextConfig = {
         protocol: "https",
         hostname: "placehold.co",
       },
-      //  TODO: clear later
-      {
-        protocol: "https",
-        hostname: "i.pravatar.cc",
-      },
     ],
   },
 };
